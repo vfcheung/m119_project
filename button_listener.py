@@ -40,8 +40,9 @@ class HexiDevice(gatt.Device):
         self.previous_val = 0
 
     def characteristic_value_updated(self, characteristic, value):
+        global cli
         val = value[0]
-        print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
+        #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
         #val = struct.unpack('h',value)
         #val = value[0]
         if ((val != 0) and (val != self.previous_val)):

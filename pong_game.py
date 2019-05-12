@@ -144,39 +144,28 @@ def draw(canvas):
     canvas.blit(label2, (470, 20))
 
 
-# client
-def child(conn):
-    while True:
-        msg = conn.recv()
-        # this just echos the value back, replace with your custom logic
-        conn.send(msg)
-
-# server
-def mother(address):
-    serv = Listener(address)
-    while True:
-        client = serv.accept()
-        child(client)
-
-
-
 # Init pong game
 init()
 
+serv = Listener(('',5000))
+client = serv.accept()
+
 while True:
-    serv = Listener(("p",5000))
-    client = serv.accept()
-    msg = client.recv()
-    if msg == "1":
-        paddle1_vel = paddle1_vel + 1
-    elif msg == "2":
-        paddle1_vel = paddle1_vel - 1
-    elif msg == "3":
-        paddle2_vel = paddle2_vel + 1
-    elif msg == "4":
-        paddle2_vel = paddle2_vel - 1
+    if (client.poll(0)):
+        msg = client.recv()
+        if msg == "1":
+            paddle1_vel = paddle1_vel + 1
+        elif msg == "2":
+            paddle1_vel = paddle1_vel - 1
+        elif msg == "3":
+            paddle2_vel = paddle2_vel + 1
+        elif msg == "4":
+            paddle2_vel = paddle2_vel - 1
+
+        #print("Received data: ", msg)
 
     draw(window)
+    #print("Drew window")
 
     for event in pygame.event.get():
 
@@ -186,3 +175,4 @@ while True:
 
     pygame.display.update()
     fps.tick(60)
+    #print("Updated display")
