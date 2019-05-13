@@ -163,7 +163,7 @@ while True:
         elif msg == "4":
             paddle2_vel = paddle2_vel - 1
         '''
-        print("Received data: ", msg)
+        print("Received data: ", int(msg)-50)
 
     draw(window)
     #print("Drew window")
