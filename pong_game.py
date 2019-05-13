@@ -79,7 +79,7 @@ def draw(canvas):
     pygame.draw.line(canvas, WHITE, [WIDTH - PAD_WIDTH, 0], [WIDTH - PAD_WIDTH, HEIGHT], 1)
     pygame.draw.circle(canvas, WHITE, [WIDTH // 2, HEIGHT // 2], 70, 1)
 
-
+    '''
     if paddle1_pos[1] > HALF_PAD_HEIGHT and paddle1_pos[1] < HEIGHT - HALF_PAD_HEIGHT:
         paddle1_pos[1] += paddle1_vel
     elif paddle1_pos[1] == HALF_PAD_HEIGHT and paddle1_vel > 0:
@@ -93,6 +93,20 @@ def draw(canvas):
         paddle2_pos[1] += paddle2_vel
     elif paddle2_pos[1] == HEIGHT - HALF_PAD_HEIGHT and paddle2_vel < 0:
         paddle2_pos[1] += paddle2_vel
+    '''
+
+    paddle1_pos[1] += paddle1_vel
+    paddle2_pos[1] += paddle2_vel
+
+    if paddle1_pos[1] > HEIGHT - HALF_PAD_HEIGHT:
+        paddle1_pos[1] = HEIGHT - HALF_PAD_HEIGHT
+    elif paddle1_pos[1] < HALF_PAD_HEIGHT:
+        paddle1_pos[1] = HALF_PAD_HEIGHT
+
+    if paddle2_pos[1] > HEIGHT - HALF_PAD_HEIGHT:
+        paddle2_pos[1] = HEIGHT - HALF_PAD_HEIGHT
+    elif paddle2_pos[1] < HALF_PAD_HEIGHT:
+        paddle2_pos[1] = HALF_PAD_HEIGHT
 
 
     ball_pos[0] += int(ball_vel[0])
@@ -163,9 +177,13 @@ while True:
         elif msg == "4":
             paddle2_vel = paddle2_vel - 1
         '''
-        print("Received data: ", int(msg)-50)
+        print("Received data: ", msg)
+        paddle1_vel = int(msg)
+        paddle2_vel = int(msg)
 
     draw(window)
+    print("Pad 1 pos: ", paddle1_pos[1])
+    print("Pad 2 pos: ", paddle2_pos[1])
     #print("Drew window")
 
     for event in pygame.event.get():
