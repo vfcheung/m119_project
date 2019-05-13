@@ -5,7 +5,7 @@ import gatt
 import struct
 
 # Multiprocessing client
-cli = Client(('localhost', 5000))
+cli = Client(('192.168.43.96', 5005))
 
 # Setting up bluetooth
 def on_connect(client, userdata, flags, rc):
