@@ -4,9 +4,6 @@ from multiprocessing.connection import Client
 import gatt
 import struct
 
-# Multiprocessing client
-cli = Client(('192.168.43.96', 5005))
-
 # Setting up bluetooth
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
@@ -42,7 +39,9 @@ class HexiDevice(gatt.Device):
     def characteristic_value_updated(self, characteristic, value):
         global cli
         #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
-        val = struct.unpack('h',value[0:1])
+        val = struct.unpack('>h',value[0:2])
+        val = val[0]
+        print(val)
         cli.send("{}".format(val))
         self.previous_val = val
 
@@ -55,6 +54,7 @@ manager = gatt.DeviceManager(adapter_name='hci0')
 hexiwear1 = HexiDevice(mac_address=DEVICE1, manager=manager)
 hexiwear1.connect()
 
+# Multiprocessing client
+cli = Client(('192.168.43.96', 5005))
+
 manager.run()
-
-
