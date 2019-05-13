@@ -41,7 +41,7 @@ class HexiDevice(gatt.Device):
         #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
         val = struct.unpack('>h',value[0:2])
         val = val[0]
-        print(val)
+        #print(val)
         cli.send("{}".format(val))
         self.previous_val = val
 
@@ -56,5 +56,6 @@ hexiwear1.connect()
 
 # Multiprocessing client
 cli = Client(('192.168.43.96', 5005))
+#cli = Client(('localhost',5005))
 
 manager.run()
