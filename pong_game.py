@@ -147,12 +147,13 @@ def draw(canvas):
 # Init pong game
 init()
 
-serv = Listener(('',5000))
+serv = Listener(('',5005))
 client = serv.accept()
 
 while True:
     if (client.poll(0)):
         msg = client.recv()
+        '''
         if msg == "1":
             paddle1_vel = paddle1_vel + 1
         elif msg == "2":
@@ -161,8 +162,8 @@ while True:
             paddle2_vel = paddle2_vel + 1
         elif msg == "4":
             paddle2_vel = paddle2_vel - 1
-
-        #print("Received data: ", msg)
+        '''
+        print("Received data: ", msg)
 
     draw(window)
     #print("Drew window")
