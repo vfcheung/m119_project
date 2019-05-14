@@ -41,7 +41,7 @@ class HexiDevice(gatt.Device):
         #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
         val = struct.unpack('>h',value[0:2])
         val = val[0]
-        #print(val)
+        print(val)
         cli.send("{}".format(val))
         self.previous_val = val
 
