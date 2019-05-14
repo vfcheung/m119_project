@@ -193,5 +193,5 @@ while True:
             sys.exit()
 
     pygame.display.update()
-    fps.tick(30)
+    fps.tick(60)
     #print("Updated display")
