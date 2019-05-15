@@ -41,18 +41,27 @@ class HexiDevice(gatt.Device):
         #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
         val = struct.unpack('>h',value[0:2])
         val = val[0]
-        print(val)
-        cli.send("{}".format(val))
+        #print(val)
+        dev = 0
+        if self.mac_address == DEVICE1:
+            dev = 1
+        elif self.mac_address == DEVICE2:
+            dev = 2
+        cli.send("{},{}".format(dev,val))
         self.previous_val = val
 
 
 # Connect bluetooth
 DEVICE1 = "00:09:50:04:00:32"
+DEVICE2 = "00:26:50:04:00:30"
 
 manager = gatt.DeviceManager(adapter_name='hci0')
 
 hexiwear1 = HexiDevice(mac_address=DEVICE1, manager=manager)
 hexiwear1.connect()
+
+hexiwear2 = HexiDevice(mac_address=DEVICE2, manager=manager)
+hexiwear2.connect()
 
 # Multiprocessing client
 cli = Client(('192.168.43.96', 5005))
