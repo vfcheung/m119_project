@@ -178,6 +178,7 @@ while True:
         elif msg == "4":
             paddle2_vel = paddle2_vel - 1
         '''
+
         print("Received data: ", msg)
         parsed_msg = msg.split(",")
         #paddle1_vel = int(msg)

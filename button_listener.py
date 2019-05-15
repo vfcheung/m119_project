@@ -5,7 +5,7 @@ import gatt
 import struct
 
 # Multiprocessing client
-cli = Client(('192.168.43.96', 5005))
+#cli = Client(('192.168.43.96', 5005))
 
 # Setting up bluetooth
 def on_connect(client, userdata, flags, rc):
@@ -45,8 +45,9 @@ class HexiDevice(gatt.Device):
         #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
         #val = struct.unpack('h',value)
         #val = value[0]
-        if ((val != 0) and (val != self.previous_val)):
-            cli.send("{}".format(val))
+        #if ((val != 0) and (val != self.previous_val)):
+        #    cli.send("{}".format(val))
+        print(val)
         self.previous_val = val
 
 
