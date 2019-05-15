@@ -94,7 +94,7 @@ def draw(canvas):
     elif paddle2_pos[1] == HEIGHT - HALF_PAD_HEIGHT and paddle2_vel < 0:
         paddle2_pos[1] += paddle2_vel
     '''
-
+    '''
     paddle1_pos[1] += paddle1_vel
     paddle2_pos[1] += paddle2_vel
 
@@ -107,6 +107,7 @@ def draw(canvas):
         paddle2_pos[1] = HEIGHT - HALF_PAD_HEIGHT
     elif paddle2_pos[1] < HALF_PAD_HEIGHT:
         paddle2_pos[1] = HALF_PAD_HEIGHT
+    '''
 
 
     ball_pos[0] += int(ball_vel[0])
@@ -178,12 +179,26 @@ while True:
             paddle2_vel = paddle2_vel - 1
         '''
         print("Received data: ", msg)
-        paddle1_vel = int(msg)
-        paddle2_vel = int(msg)
+        parsed_msg = msg.split(",")
+        #paddle1_vel = int(msg)
+        #paddle2_vel = int(msg)
+        if parsed_msg[0] == "1":
+            paddle1_pos[1] = 200 + 4*int(parsed_msg[1])
+        if parsed_msg[0] == "2":
+            paddle2_pos[1] = 200 + 4*int(parsed_msg[1])
+            
+        if paddle1_pos[1] > 360:
+            paddle1_pos[1] = 360
+        if paddle2_pos[1] > 360:
+            paddle2_pos[1] = 360
+        if paddle1_pos[1] < 40:
+            paddle1_pos[1] = 40
+        if paddle2_pos[1] < 40:
+            paddle2_pos[1] = 40
 
     draw(window)
-    print("Pad 1 pos: ", paddle1_pos[1])
-    print("Pad 2 pos: ", paddle2_pos[1])
+    #print("Pad 1 pos: ", paddle1_pos[1])
+    #print("Pad 2 pos: ", paddle2_pos[1])
     #print("Drew window")
 
     for event in pygame.event.get():
