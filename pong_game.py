@@ -1,7 +1,7 @@
 # Pong game portion from Hamdy Abou El Anein
 
 # Import for multiprocessing server
-from multiprocessing.connection import Listener
+from multiprocessing.connection import Listener, Client
 
 # Imports for game
 import random
@@ -9,6 +9,11 @@ import pygame
 import sys
 from pygame import *
 from easygui import *
+
+#import for plotting acceleration data
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
 
 # Setting up game
 image = "/usr/share/daylight/daylightstart/DayLightLogoSunSet.gif"
@@ -79,36 +84,6 @@ def draw(canvas):
     pygame.draw.line(canvas, WHITE, [WIDTH - PAD_WIDTH, 0], [WIDTH - PAD_WIDTH, HEIGHT], 1)
     pygame.draw.circle(canvas, WHITE, [WIDTH // 2, HEIGHT // 2], 70, 1)
 
-    '''
-    if paddle1_pos[1] > HALF_PAD_HEIGHT and paddle1_pos[1] < HEIGHT - HALF_PAD_HEIGHT:
-        paddle1_pos[1] += paddle1_vel
-    elif paddle1_pos[1] == HALF_PAD_HEIGHT and paddle1_vel > 0:
-        paddle1_pos[1] += paddle1_vel
-    elif paddle1_pos[1] == HEIGHT - HALF_PAD_HEIGHT and paddle1_vel < 0:
-        paddle1_pos[1] += paddle1_vel
-
-    if paddle2_pos[1] > HALF_PAD_HEIGHT and paddle2_pos[1] < HEIGHT - HALF_PAD_HEIGHT:
-        paddle2_pos[1] += paddle2_vel
-    elif paddle2_pos[1] == HALF_PAD_HEIGHT and paddle2_vel > 0:
-        paddle2_pos[1] += paddle2_vel
-    elif paddle2_pos[1] == HEIGHT - HALF_PAD_HEIGHT and paddle2_vel < 0:
-        paddle2_pos[1] += paddle2_vel
-    '''
-    '''
-    paddle1_pos[1] += paddle1_vel
-    paddle2_pos[1] += paddle2_vel
-
-    if paddle1_pos[1] > HEIGHT - HALF_PAD_HEIGHT:
-        paddle1_pos[1] = HEIGHT - HALF_PAD_HEIGHT
-    elif paddle1_pos[1] < HALF_PAD_HEIGHT:
-        paddle1_pos[1] = HALF_PAD_HEIGHT
-
-    if paddle2_pos[1] > HEIGHT - HALF_PAD_HEIGHT:
-        paddle2_pos[1] = HEIGHT - HALF_PAD_HEIGHT
-    elif paddle2_pos[1] < HALF_PAD_HEIGHT:
-        paddle2_pos[1] = HALF_PAD_HEIGHT
-    '''
-
 
     ball_pos[0] += int(ball_vel[0])
     ball_pos[1] += int(ball_vel[1])
@@ -159,6 +134,8 @@ def draw(canvas):
     canvas.blit(label2, (470, 20))
 
 
+# Possible moving average filter to remove jitter
+# Window of length 1 is equivilent to not doing filtering
 accel1_values = []
 accel2_values = []
 filter_window = 1
@@ -172,43 +149,39 @@ def filter(values, new_value):
     values.append(new_value)
     return sum(values) / float(len(values))
 
+
 # Init pong game
 init()
 
+# Server to listen to packets from PI
+# Uses TCP port 5005
 serv = Listener(('',5005))
 client = serv.accept()
+
+# Client that relays packets to plotting process
+cli = Client(('localhost', 5000))
 
 while True:
     if (client.poll(0)):
         msg = client.recv()
-        '''
-        if msg == "1":
-            paddle1_vel = paddle1_vel + 1
-        elif msg == "2":
-            paddle1_vel = paddle1_vel - 1
-        elif msg == "3":
-            paddle2_vel = paddle2_vel + 1
-        elif msg == "4":
-            paddle2_vel = paddle2_vel - 1
-        '''
 
         print("Received data: ", msg)
         parsed_msg = msg.split(",")
-        #paddle1_vel = int(msg)
-        #paddle2_vel = int(msg)
+
         if parsed_msg[0] == "1":
             filtered_output = filter(accel1_values, int(parsed_msg[1]))
             paddle1_pos[1] = 360 + 4*(int(filtered_output))
         if parsed_msg[0] == "2":
             filtered_output = filter(accel2_values, int(parsed_msg[1]))
             paddle2_pos[1] = 360 + 4*(int(filtered_output))
+        cli.send(msg)
             
-        # Bottom
+        # Bottom edge
         if paddle1_pos[1] > 360:
             paddle1_pos[1] = 360
         if paddle2_pos[1] > 360:
             paddle2_pos[1] = 360
-        # Top
+        # Top edge
         if paddle1_pos[1] < 40:
             paddle1_pos[1] = 40
         if paddle2_pos[1] < 40:

@@ -218,16 +218,12 @@ while True:
         parsed_msg = msg.split(",")
         #paddle1_vel = int(msg)
         #paddle2_vel = int(msg)
-        accel1=0
-        accel2=0
         if parsed_msg[0] == "1":
             paddle1_pos[1] = 200 + 4*int(parsed_msg[1])
-            accel1=int(parsed_msg[1])
-            setx1(accel1)
+            setx1(int(parsed_msg[1]))
         if parsed_msg[0] == "2":
             paddle2_pos[1] = 200 + 4*int(parsed_msg[1])
-            accel2=int(parsed_msg[1])
-            setx2(accel2)
+            setx2(int(parsed_msg[1]))
         if paddle1_pos[1] > 360:
             paddle1_pos[1] = 360
         if paddle2_pos[1] > 360:
@@ -237,7 +233,7 @@ while True:
         if paddle2_pos[1] < 40:
             paddle2_pos[1] = 40
 
-                # Create figure for plotting
+        # Create figure for plotting
         fig = plt.figure()
         ax1 = fig.add_subplot(211)
         plt.title('hw4 Project animated plot')
