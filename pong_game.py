@@ -159,6 +159,19 @@ def draw(canvas):
     canvas.blit(label2, (470, 20))
 
 
+accel1_values = []
+accel2_values = []
+filter_window = 1
+
+for i in range(0,filter_window):
+    accel1_values.append(0)
+    accel2_values.append(0)
+
+def filter(values, new_value):
+    values.pop(0)
+    values.append(new_value)
+    return sum(values) / float(len(values))
+
 # Init pong game
 init()
 
@@ -184,14 +197,18 @@ while True:
         #paddle1_vel = int(msg)
         #paddle2_vel = int(msg)
         if parsed_msg[0] == "1":
-            paddle1_pos[1] = 200 + 4*int(parsed_msg[1])
+            filtered_output = filter(accel1_values, int(parsed_msg[1]))
+            paddle1_pos[1] = 360 + 4*(int(filtered_output))
         if parsed_msg[0] == "2":
-            paddle2_pos[1] = 200 + 4*int(parsed_msg[1])
+            filtered_output = filter(accel2_values, int(parsed_msg[1]))
+            paddle2_pos[1] = 360 + 4*(int(filtered_output))
             
+        # Bottom
         if paddle1_pos[1] > 360:
             paddle1_pos[1] = 360
         if paddle2_pos[1] > 360:
             paddle2_pos[1] = 360
+        # Top
         if paddle1_pos[1] < 40:
             paddle1_pos[1] = 40
         if paddle2_pos[1] < 40:
