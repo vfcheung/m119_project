@@ -3,13 +3,27 @@ from multiprocessing.connection import Client
 # Imports for bluetooth
 import gatt
 import struct
+import errno, sys
 
-# Multiprocessing client
-#cli = Client(('192.168.43.96', 5005))
+
+mac_addresses = {
+    'vincent': '00:3B:40:0B:00:0E',
+    'jingbin': '00:09:50:04:00:32',
+    'justin': '00:26:50:04:00:30'
+}
+
+
+def choose_device():
+    if len(sys.argv) != 2 or sys.argv[1] not in mac_addresses:
+        sys.stderr.write('usage: python3 {0} user\n  user: vincent, jingbin, or justin\n'.format(sys.argv[0]))
+        sys.exit(errno.EINVAL)
+    return mac_addresses[sys.argv[1]]
+
 
 # Setting up bluetooth
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
+
 
 class HexiDevice(gatt.Device):
     
@@ -41,24 +55,30 @@ class HexiDevice(gatt.Device):
 
     def characteristic_value_updated(self, characteristic, value):
         global cli
-        val = value[0]
         #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
-        #val = struct.unpack('h',value)
-        #val = value[0]
-        #if ((val != 0) and (val != self.previous_val)):
-        #    cli.send("{}".format(val))
-        print(val)
+        val = struct.unpack('>h',value[0:2])
+        val = val[0]
+        #print(val)
+        dev = 0
+        if self.mac_address == DEVICE1:
+            dev = 1
+        elif self.mac_address == DEVICE2:
+            dev = 2
+        cli.send("{},{}".format(dev,val))
         self.previous_val = val
 
 
-# Connect bluetooth
-DEVICE1 = "00:09:50:04:00:32"
+def main():
+    mac_address = choose_device()
+    manager = gatt.DeviceManager(adapter_name='hci0')
+    hexiwear = HexiDevice(mac_address=mac_address, manager=manager)
+    hexiwear.connect()
 
-manager = gatt.DeviceManager(adapter_name='hci0')
-
-hexiwear1 = HexiDevice(mac_address=DEVICE1, manager=manager)
-hexiwear1.connect()
-
-manager.run()
+    # Multiprocessing client
+    # cli = Client(('192.168.43.96', 5005))
+    #cli = Client(('localhost',5005))
+    manager.run()
 
 
+if __name__ == '__main__':
+    main()
