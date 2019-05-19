@@ -31,14 +31,18 @@ class HexiDevice(gatt.Device):
 
     def characteristic_value_updated(self, characteristic, value):
         accel_vals = [struct.unpack('<h', value[2*i:2*i+2])[0] for i in range(3)]
-        print(accel_vals)
         to_plotter.write(str(accel_vals) + '\n')
         to_plotter.flush()
+        to_cursor.write(str(accel_vals) + '\n')
+        to_cursor.flush()
 
 
-def server_proc(write_pipe, mac_address):
+def server_proc(pipe_to_plotter, pipe_to_cursor, mac_address):
     global to_plotter
-    to_plotter = write_pipe
+    global to_cursor
+
+    to_plotter = pipe_to_plotter
+    to_cursor = pipe_to_cursor
 
     print("server process started")
     
