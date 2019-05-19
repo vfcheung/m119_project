@@ -3,8 +3,11 @@ from multiprocessing.connection import Client
 # Imports for bluetooth
 import gatt
 import struct
-import errno, sys
+import errno, sys, os, select
 
+r, w = os.pipe()
+r = os.fdopen(r,'r')
+w = os.fdopen(w,'w')
 
 mac_addresses = {
     'vincent': '00:3B:40:0B:00:0E',
@@ -16,13 +19,8 @@ mac_addresses = {
 def choose_device():
     if len(sys.argv) != 2 or sys.argv[1] not in mac_addresses:
         sys.stderr.write('usage: python3 {0} user\n  user: vincent, jingbin, or justin\n'.format(sys.argv[0]))
-        sys.exit(errno.EINVAL)
+        sys.exit(errno.errorcode[errno.EINVAL])
     return mac_addresses[sys.argv[1]]
-
-
-# Setting up bluetooth
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
 
 
 class HexiDevice(gatt.Device):
@@ -51,34 +49,42 @@ class HexiDevice(gatt.Device):
             if c.uuid == '00002032-0000-1000-8000-00805f9b34fb')
 
         device_alert_out_characteristic.enable_notifications()
-        self.previous_val = 0
 
     def characteristic_value_updated(self, characteristic, value):
-        global cli
-        #print("Received alert from Hexiwear {}: {}".format(self.mac_address,val))
-        val = struct.unpack('>h',value[0:2])
-        val = val[0]
-        #print(val)
-        dev = 0
-        if self.mac_address == DEVICE1:
-            dev = 1
-        elif self.mac_address == DEVICE2:
-            dev = 2
-        cli.send("{},{}".format(dev,val))
-        self.previous_val = val
+        accel_vals = [struct.unpack('<h', value[2*i:2*i+2])[0] for i in range(3)]
+        w.write(str(accel_vals) + '\n')
+        w.flush()
 
 
-def main():
+def server_main():
+    print("server process")
     mac_address = choose_device()
     manager = gatt.DeviceManager(adapter_name='hci0')
     hexiwear = HexiDevice(mac_address=mac_address, manager=manager)
     hexiwear.connect()
-
-    # Multiprocessing client
-    # cli = Client(('192.168.43.96', 5005))
-    #cli = Client(('localhost',5005))
     manager.run()
+
+
+def plotter_main():
+    print("plotter process")
+    while True:
+        print(r.readline(), end='')
+
+
+def main():
+    processid = os.fork()
+    if processid:
+        # parent
+        r.close()
+        server_main()
+    else:
+        # child
+        w.close()
+        plotter_main()
+    
 
 
 if __name__ == '__main__':
     main()
+
+
