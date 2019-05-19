@@ -1,26 +1,5 @@
-# Imports for multiprocessing
-from multiprocessing.connection import Client
-# Imports for bluetooth
 import gatt
 import struct
-import errno, sys, os, select
-
-r, w = os.pipe()
-r = os.fdopen(r,'r')
-w = os.fdopen(w,'w')
-
-mac_addresses = {
-    'vincent': '00:3B:40:0B:00:0E',
-    'jingbin': '00:09:50:04:00:32',
-    'justin': '00:26:50:04:00:30'
-}
-
-
-def choose_device():
-    if len(sys.argv) != 2 or sys.argv[1] not in mac_addresses:
-        sys.stderr.write('usage: python3 {0} user\n  user: vincent, jingbin, or justin\n'.format(sys.argv[0]))
-        sys.exit(errno.errorcode[errno.EINVAL])
-    return mac_addresses[sys.argv[1]]
 
 
 class HexiDevice(gatt.Device):
@@ -52,39 +31,18 @@ class HexiDevice(gatt.Device):
 
     def characteristic_value_updated(self, characteristic, value):
         accel_vals = [struct.unpack('<h', value[2*i:2*i+2])[0] for i in range(3)]
-        w.write(str(accel_vals) + '\n')
-        w.flush()
+        print(accel_vals)
+        to_plotter.write(str(accel_vals) + '\n')
+        to_plotter.flush()
 
 
-def server_main():
-    print("server process")
-    mac_address = choose_device()
+def server_proc(write_pipe, mac_address):
+    global to_plotter
+    to_plotter = write_pipe
+
+    print("server process started")
+    
     manager = gatt.DeviceManager(adapter_name='hci0')
     hexiwear = HexiDevice(mac_address=mac_address, manager=manager)
     hexiwear.connect()
     manager.run()
-
-
-def plotter_main():
-    print("plotter process")
-    while True:
-        print(r.readline(), end='')
-
-
-def main():
-    processid = os.fork()
-    if processid:
-        # parent
-        r.close()
-        server_main()
-    else:
-        # child
-        w.close()
-        plotter_main()
-    
-
-
-if __name__ == '__main__':
-    main()
-
-
