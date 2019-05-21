@@ -7,8 +7,8 @@ from modules.cursor_controller import cursor_proc
 
 
 mac_addresses = {
-  'vincent': '00:3B:40:0B:00:0E',
-  'jingbin': '00:09:50:04:00:32',
+  'vincent': '00:09:50:04:00:32',
+  'jingbin': '00:3B:40:0B:00:0E',
   'justin': '00:26:50:04:00:30'
 }
 
@@ -17,7 +17,7 @@ def main():
 
   parser = ArgumentParser()
   parser.add_argument('device', help='vincent, jingbin, or justin')
-  parser.add_argument('--linear', help='switch to linear mode', action='store_true')
+  parser.add_argument('--linear', default=True, help='switch to linear mode', action='store_true')
   args = parser.parse_args()
 
   if args.device not in mac_addresses:
