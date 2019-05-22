@@ -7,8 +7,8 @@ from modules.cursor_controller import cursor_proc
 
 
 mac_addresses = {
-  'vincent': '00:09:50:04:00:32',
-  'jingbin': '00:3B:40:0B:00:0E',
+  'vincent': '00:3B:40:0B:00:0E',
+  'jingbin': '00:09:50:04:00:32',
   'justin': '00:26:50:04:00:30'
 }
 

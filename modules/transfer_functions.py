@@ -1,6 +1,6 @@
 import numpy as np
 
-def trapezoidal_integrate(initial_values=(0,0,0), sample1=(0,0,0), sample2=(0,0,0), sampling_time=0.1):
+def trapezoidal_integrate(initial_values=(0,0,0), sample1=(0,0,0), sample2=(0,0,0), sampling_time=0.2):
 	initial_values = np.array(initial_values)
 	sample1 = np.array(sample1)
 	sample2 = np.array(sample2)
