@@ -12,18 +12,25 @@ def angular_transfer_function(x, y, z):
   return mouse_x, mouse_y
 
 
-def linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos):
-  new_acc = (raw_data[0],raw_data[1])
-  prev_acc = (previous_acc[0],previous_acc[1])
-  '''
-  prev_vel = (previous_vel[0],previous_vel[1])
-  mouse_vel_x,mouse_vel_y = tf.trapezoidal_integrate(prev_vel,new_acc,prev_acc,0.1)
-  new_vel = (mouse_vel_x, mouse_vel_y)
-  mouse_pos_x, mouse_pos_y = tf.trapezoidal_integrate(mouse_pos,new_vel,prev_vel,0.1)
-  '''
-  mouse_pos_x, mouse_pos_y = tf.trapezoidal_integrate(mouse_pos,new_acc,prev_acc)
-  return mouse_pos_x, mouse_pos_y
-
+def linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,mode="orientation"):
+  if mode == "once":
+    mouse_pos_x, mouse_pos_y = tf.integrate_1_tf(raw_data,previous_acc,mouse_pos)
+    return mouse_pos_x, mouse_pos_y
+  elif mode == "twice":
+    mouse_pos_x, mouse_pos_y, mouse_vel_x, mouse_vel_y = tf.integrate_2_tf(raw_data,previous_acc,previous_vel,mouse_pos)
+    # Check cursor velocity
+    if mouse_vel_x > 30:
+      mouse_vel_x = 30
+    if mouse_vel_x < -30:
+      mouse_vel_x = -30
+    if mouse_vel_y > 30:
+      mouse_vel_y = 30
+    if mouse_vel_y < -30:
+      mouse_vel_y = -30
+    return mouse_pos_x, mouse_pos_y, mouse_vel_x, mouse_vel_y
+  else mode == "orientation":
+    mouse_pos_x, mouse_pos_y = tf.oritentation_tf(raw_data)
+    return mouse_pos_x, mouse_pos_y
 
 def cursor_proc(read_pipe, linear_mode):
 
@@ -39,35 +46,47 @@ def cursor_proc(read_pipe, linear_mode):
   previous_vel = (0,0,0)
   mouse_pos = (0,0)
 
+  # Transfer function modes
+  #   Orientation: Maps absolute orientation to cursor
+  #   Once: Integrates accel data once
+  #   Twice: Integrates accel data twice, currently very bad
+  tf_mode = "orientation"
+  # CD gain: a scaling factor for the cursor position, only useful for integration modes
+  cd_gain = 1
+
   while True:
     raw_data = literal_eval(read_pipe.readline())
     if linear_mode:
-      #mouse_pos_x, mouse_pos_y, mouse_vel_x, mouse_vel_y  = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos)
-      mouse_pos_x, mouse_pos_y = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos)
-      if mouse_pos_x > x_dim:
-        mouse_pos_x = x_dim
-      if mouse_pos_x < 0:
+      tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,mode="orientation")
+      if tf_mode == "orientation" or tf_mode == "once":
+        mouse_pos_x = tf_out[0]
+        mouse_pos_y = tf.out[1]
+      elif tf_mode == "twice":
+        mouse_pos_x = tf_out[0]
+        mouse_pos_y = tf.out[1]
+        mouse_vel_x = tf.out[2]
+        mouse_vel_y = tf.out[3]
+        previous_vel = (mouse_vel_x,mouse_vel_y,0)
+
+      move_pos_x = cd_gain*mouse_pos_x
+      move_pos_y = cd_gain*mouse_pos_y
+
+      # Check screen edge
+      if move_pos_x > x_dim:
+        move_pos_x = x_dim
+      if move_pos_x < 0:
         mouse_pos_x = 0
-      if mouse_pos_y > x_dim:
-        mouse_pos_y = x_dim
-      if mouse_pos_y < 0:
-        mouse_pos_y = 0
-      '''
-      if mouse_vel_x > 30:
-        mouse_vel_x = 30
-      if mouse_vel_x < -30:
-        mouse_vel_x = -30
-      if mouse_vel_y > 30:
-        mouse_vel_y = 30
-      if mouse_vel_y < -30:
-        mouse_vel_y = -30
-      '''
-      #print("New mouse vel: ",previous_vel)
-      print("New mouse pos: ",mouse_pos)
-      mouse_pos = (int(mouse_pos_x),int(mouse_pos_y))
+      if move_pos_y > y_dim:
+        move_pos_y = y_dim
+      if move_pos_y < 0:
+        move_pos_y = 0
+
+      pos_to_move = (int(move_pos_x),int(move_pos_y)
+      
+      print("New mouse pos: ",pos_to_move)
+      mouse_pos = (mouse_pos_x,mouse_pos_y)
       previous_acc = raw_data
-      #previous_vel = (mouse_vel_x,mouse_vel_y,0)
+      
     else:
-      mouse_pos = angular_transfer_function(*raw_data)
-    pos_to_move = (2*mouse_pos[0],2*mouse_pos[1])
+      pos_to_move = angular_transfer_function(*raw_data)
     m.move(*pos_to_move)
