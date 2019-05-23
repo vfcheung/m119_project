@@ -7,7 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
-
+import string
+from ast import literal_eval
 
 
 x1v=0
@@ -49,66 +50,66 @@ def get_arrow(theta,ys1,ys2,ys3):
     w = ys3#np.cos(3*theta)
     return x,y,z,u,v,w
 
+serv = Listener(('',5005))
+print("listening")
+client = serv.accept()
+#cli = Client(('localhost', 5000))
+print("bye")
 
 def update(theta,ys1,ys2,ys3):
     global quiver
     quiver.remove()
 
-#TODO: (depends on format of data)fill in with appending accelero data
-#so append will just need to change based on that.
-    
-    
+#ValueError: shape mismatch: objects cannot be broadcast to a single shape
 
+    if(client.poll(0)):
+        acceldata = client.recv()
+        print("Received data: ", acceldata)
+        parsed_msg=literal_eval(acceldata)
+        print(parsed_msg)
 
-    ys1.append(getx1())
-    ys2.append(getx2())
-    ys3.append(getx3())
+        print("asdf")
+        ys1.append(int(parsed_msg[0]))
+        print(int(parsed_msg[0]))
+        ys1.append(int(parsed_msg[1]))
+        print(int(parsed_msg[1]))
+        ys1.append(int(parsed_msg[2]))
+        print(int(parsed_msg[2]))
+        print("Asdfsdasf")
+
+    else:
+        ys1.append(0)
+        ys2.append(0)
+        ys3.append(0)
+    
     quiver = ax.quiver(*get_arrow(theta,ys1,ys2,ys3)) 
     # Limit x and y lists to 200 samples - 2s 
-    ys1 = ys1[-x_len:]
-    ys2 = ys2[-x_len:]
-    ys3 = ys3[-x_len:]
 
     # Draw dis and accel lists
-    line1.set_ydata(ys1)
-    line2.set_ydata(ys2)
-    line3.set_ydata(ys3)
+    #line1.set_ydata(ys1)
+    #line2.set_ydata(ys2)
+    #line3.set_ydata(ys3)
 
-    return line1,line2,line3,
-
-
-
-serv = Listener(('',5005))
-client = serv.accept()
-cli = Client(('localhost', 5000))
+    #return line1,line2,line3,
 
 
-while True:
-    if (client.poll(0)):
-        acceldata = client.recv()
 
-        print("Received data: ", acceldata)
-        parsed_msg = msg.split(",")
-        setx1(int(parsed_msg[0]))
-        setx2(int(parsed_msg[1]))
-        setx3(int(parsed_msg[2]))
 
-        cli.send(acceldata)
 
-        x_len = 20
-        ys1 = [0] * x_len
-        ys2 = [0] * x_len
-        ys3 = [0] * x_len
+x_len = 20
+ys1 = [0] * x_len
+ys2 = [0] * x_len
+ys3 = [0] * x_len
 
 #create fig
-        fig, ax = plt.subplots(subplot_kw=dict(projection="3d"))
+fig, ax = plt.subplots(subplot_kw=dict(projection="3d"))
 #quiver
-        quiver = ax.quiver(*get_arrow(0,ys1,ys2,ys3))
+quiver = ax.quiver(*get_arrow(0,ys1,ys2,ys3))
 #params
-        ax.set_xlim(-80, 80)
-        ax.set_ylim(-80, 80)
-        ax.set_zlim(-80, 80)
-        ani = FuncAnimation(fig, update, fargs=(ys1, ys2, ys3), frames=np.linspace(0,2*np.pi,200), interval=5) #increase rate of processing by lowering interval
-        plt.show() #use fargs to update for the update and append those to update the uv w?
+ax.set_xlim(-80, 80)
+ax.set_ylim(-80, 80)
+ax.set_zlim(-80, 80)
+ani = FuncAnimation(fig, update, fargs=(ys1, ys2, ys3), frames=np.linspace(0,2*np.pi,200), interval=5) #increase rate of processing by lowering interval
+plt.show()        
 
 
