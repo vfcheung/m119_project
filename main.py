@@ -2,8 +2,17 @@ import errno, sys, os
 from argparse import ArgumentParser
 
 from modules.ble_server import server_proc
-from modules.accel_plotter import plotter_proc
+#from modules.accel_plotter import plotter_proc
 from modules.cursor_controller import cursor_proc
+
+#attempt1
+from modules.accel_plotter import plotter_proc
+from multiprocessing.connection import Listener, Client
+
+#open tcp port 5005
+IPADDR='172.58.27.253'
+cli = Client(('172.58.27.253', 5004))
+
 
 
 mac_addresses = {
@@ -47,7 +56,11 @@ def main():
   else:
     # acceleration data plotter process
     plotter_fds[1].close()
-    plotter_proc(plotter_fds[0], args.linear)
+    plotter_proc(cli,plotter_fds[0], args.linear)
+    #going to open tcp port instead in this process?
+
+
+
 
 
 if __name__ == '__main__':
