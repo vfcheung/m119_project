@@ -11,26 +11,6 @@ import string
 from ast import literal_eval
 
 
-x1v=0
-x2v=0
-x3v=0
-
-def setx1(x1):
-    x1v=x1
-def setx2(x2):
-    x2v=x2
-def setx3(x3):
-    x3v=x3
-
-def getx1():
-    return x1v
-def getx2():
-    return x2v
-def getx3():
-    return x3v
-
-
-
 
 def get_arrow(theta,ys1,ys2,ys3):
     accelero=[1,23,10]
@@ -55,9 +35,9 @@ print("listening")
 client = serv.accept()
 #cli = Client(('localhost', 5000))
 print("bye")
-
+parsed_msg = [0,0,0]
 def update(theta,ys1,ys2,ys3):
-    global quiver
+    global quiver, parsed_msg
     quiver.remove()
 
 #ValueError: shape mismatch: objects cannot be broadcast to a single shape
@@ -68,21 +48,8 @@ def update(theta,ys1,ys2,ys3):
         parsed_msg=literal_eval(acceldata)
         print(parsed_msg)
 
-        print("asdf")
-        ys1.append(int(parsed_msg[0]))
-        print(int(parsed_msg[0]))
-        ys1.append(int(parsed_msg[1]))
-        print(int(parsed_msg[1]))
-        ys1.append(int(parsed_msg[2]))
-        print(int(parsed_msg[2]))
-        print("Asdfsdasf")
-
-    else:
-        ys1.append(0)
-        ys2.append(0)
-        ys3.append(0)
     
-    quiver = ax.quiver(*get_arrow(theta,ys1,ys2,ys3)) 
+    quiver = ax.quiver(*get_arrow(theta,*parsed_msg)) 
     # Limit x and y lists to 200 samples - 2s 
 
     # Draw dis and accel lists
