@@ -10,8 +10,8 @@ from modules.accel_plotter import plotter_proc
 from multiprocessing.connection import Listener, Client
 
 #open tcp port 5005
-IPADDR='172.20.10.2'
-cli = Client(('172.20.10.2', 5005))
+IPADDR='192.168.43.96'
+cli = Client((IPADDR, 5005))
 
 
 

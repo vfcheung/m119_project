@@ -10,13 +10,14 @@ import numpy as np
 
 #PASSED IN A RAW DATA (x1,x2,x3)
 def filter(data,previous_data,weight):
-	filtereddata=[0,0,0]
+	filtered_data = np.array([0,0,0])
+	data = np.array(data)
+	previous_data = np.array(previous_data)
 	#difference equation is in the picture i took
 	#x[n]=n/n+1x[n-1]+1/n+1(x[n])
-	for i in range(len(filtereddata)-1):
-		filtereddata[i]=int(previous_data[i]*float(weight)/float((weight+1))+float(1/(weight+1))*data[i])
-	print((filtereddata))
-	return (filtereddata)
+	filtered_data = previous_data * (1-weight) + data * weight
+	#print(filtered_data)
+	return (filtered_data.astype(int))
 
 #attempting to do kalman filter
 #does recursive estimation?

@@ -56,10 +56,10 @@ def cursor_proc(read_pipe, linear_mode):
 
   while True:
     raw_data = literal_eval(read_pipe.readline())
-    print("ur raw data : ",raw_data)
-    print("prev data: ", previous_acc)
-    raw_data=fdata.filter(raw_data, previous_acc, 3) #apply filter
-    print("ur filtered raw data : ",raw_data)
+    #print("raw data : ",raw_data)
+    #print("prev data: ", previous_acc)
+    #raw_data = fdata.filter(raw_data, previous_acc, 0.6) #apply filter
+    #print("filtered data : ",raw_data)
     if linear_mode:
       tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,mode="orientation")
       previous_acc=raw_data
