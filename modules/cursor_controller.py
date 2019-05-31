@@ -50,18 +50,16 @@ def cursor_proc(read_pipe, linear_mode):
   #   Orientation: Maps absolute orientation to cursor
   #   Once: Integrates accel data once
   #   Twice: Integrates accel data twice, currently very bad
-  tf_mode = "orientation"
-  # CD gain: a scaling factor for the cursor position, only useful for integration modes
-  cd_gain = 1
+  tf_mode = "once"
 
   while True:
     raw_data = literal_eval(read_pipe.readline())
     #print("raw data : ",raw_data)
     #print("prev data: ", previous_acc)
-    #raw_data = fdata.filter(raw_data, previous_acc, 0.6) #apply filter
+    raw_data = fdata.filter(raw_data, previous_acc, 0.1) #apply filter
     #print("filtered data : ",raw_data)
     if linear_mode:
-      tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,mode="orientation")
+      tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,tf_mode)
       previous_acc=raw_data
       if tf_mode == "orientation" or tf_mode == "once":
         mouse_pos_x = tf_out[0]
@@ -73,20 +71,17 @@ def cursor_proc(read_pipe, linear_mode):
         mouse_vel_y = tf_out[3]
         previous_vel = (mouse_vel_x,mouse_vel_y,0)
 
-      move_pos_x = cd_gain*mouse_pos_x
-      move_pos_y = cd_gain*mouse_pos_y
-
       # Check screen edge
-      if move_pos_x > x_dim:
-        move_pos_x = x_dim
-      if move_pos_x < 0:
+      if mouse_pos_x > x_dim:
+        mouse_pos_x = x_dim
+      if mouse_pos_x < 0:
         mouse_pos_x = 0
-      if move_pos_y > y_dim:
-        move_pos_y = y_dim
-      if move_pos_y < 0:
-        move_pos_y = 0
+      if mouse_pos_y > y_dim:
+        mouse_pos_y = y_dim
+      if mouse_pos_y < 0:
+        mouse_pos_y = 0
 
-      pos_to_move = (int(move_pos_x),int(move_pos_y))
+      pos_to_move = (int(mouse_pos_x),int(mouse_pos_y))
       print("New mouse pos: ", pos_to_move)
       mouse_pos = (mouse_pos_x,mouse_pos_y)
       previous_acc = raw_data
