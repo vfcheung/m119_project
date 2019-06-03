@@ -50,7 +50,7 @@ def cursor_proc(read_pipe, linear_mode):
   #   Orientation: Maps absolute orientation to cursor
   #   Once: Integrates accel data once
   #   Twice: Integrates accel data twice, currently very bad
-  tf_mode = "once"
+  tf_mode = "orientation"
 
   while True:
     raw_data = literal_eval(read_pipe.readline())

@@ -15,7 +15,7 @@ def trapezoidal_integrate(initial_values=(0,0,0), sample1=(0,0,0), sample2=(0,0,
 
 def orientation_tf(raw_data):
 	#TODO: find actual mapping
-	return -raw_data[0]/500*1920*2, raw_data[1]/500*1080*2
+	return 960+raw_data[2]/100*1920, 540+raw_data[1]/100*1080
 
 
 def integrate_1_tf(raw_data,previous_acc,mouse_pos):
