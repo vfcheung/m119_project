@@ -28,11 +28,11 @@ def linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,mode="
     if mouse_vel_y < -30:
       mouse_vel_y = -30
     return mouse_pos_x, mouse_pos_y, mouse_vel_x, mouse_vel_y
-  else mode == "orientation":
-    mouse_pos_x, mouse_pos_y = tf.oritentation_tf(raw_data)
+  elif mode == "orientation":
+    mouse_pos_x, mouse_pos_y = tf.orientation_tf(raw_data)
     return mouse_pos_x, mouse_pos_y
 
-def cursor_proc(read_pipe, linear_mode):
+def cursor_proc(read_pipe, linear_mode, left_click=0, right_click=0):
 
   print("cursor control process started in {0} mode".format('linear' if linear_mode else 'angular'))
 
@@ -40,6 +40,8 @@ def cursor_proc(read_pipe, linear_mode):
   global y_dim
 
   m = PyMouse()
+#  m.click(x_dim/2, y_dim/2, 1)
+
   x_dim, y_dim = m.screen_size()
 
   previous_acc = (0,0,0)
@@ -51,40 +53,48 @@ def cursor_proc(read_pipe, linear_mode):
   #   Once: Integrates accel data once
   #   Twice: Integrates accel data twice, currently very bad
   tf_mode = "orientation"
-  # CD gain: a scaling factor for the cursor position, only useful for integration modes
-  cd_gain = 1
 
   while True:
     raw_data = literal_eval(read_pipe.readline())
-    raw_data=fdata.filter(raw_data, previous_acc, 4) #apply filter
+    #print("raw data : ",raw_data)
+    #print("prev data: ", previous_acc)
+    raw_data = fdata.filter(raw_data, previous_acc, 0.1) #apply filter
+    #print("filtered data : ",raw_data)
+
+# click works about the same, except for int button possible values are 1: left, 2: right, 3: middle
+#m.click(500, 300, 1)
+
+    #check if button pushed next, then apply
+    if left_click:#default no left or right click
+    	m.click(m.position(),1) #n33ds x y position to perform click
+    if right_click: # default no left or right click.
+    	m.click(m.position(),2)
+
     if linear_mode:
-      tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,mode="orientation")
+      tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,tf_mode)
+      previous_acc=raw_data
       if tf_mode == "orientation" or tf_mode == "once":
         mouse_pos_x = tf_out[0]
-        mouse_pos_y = tf.out[1]
+        mouse_pos_y = tf_out[1]
       elif tf_mode == "twice":
         mouse_pos_x = tf_out[0]
-        mouse_pos_y = tf.out[1]
-        mouse_vel_x = tf.out[2]
-        mouse_vel_y = tf.out[3]
+        mouse_pos_y = tf_out[1]
+        mouse_vel_x = tf_out[2]
+        mouse_vel_y = tf_out[3]
         previous_vel = (mouse_vel_x,mouse_vel_y,0)
 
-      move_pos_x = cd_gain*mouse_pos_x
-      move_pos_y = cd_gain*mouse_pos_y
-
       # Check screen edge
-      if move_pos_x > x_dim:
-        move_pos_x = x_dim
-      if move_pos_x < 0:
+      if mouse_pos_x > x_dim:
+        mouse_pos_x = x_dim
+      if mouse_pos_x < 0:
         mouse_pos_x = 0
-      if move_pos_y > y_dim:
-        move_pos_y = y_dim
-      if move_pos_y < 0:
-        move_pos_y = 0
+      if mouse_pos_y > y_dim:
+        mouse_pos_y = y_dim
+      if mouse_pos_y < 0:
+        mouse_pos_y = 0
 
-      pos_to_move = (int(move_pos_x),int(move_pos_y)
-      
-      print("New mouse pos: ",pos_to_move)
+      pos_to_move = (int(mouse_pos_x),int(mouse_pos_y))
+      print("New mouse pos: ", pos_to_move)
       mouse_pos = (mouse_pos_x,mouse_pos_y)
       previous_acc = raw_data
       
