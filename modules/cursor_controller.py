@@ -40,8 +40,6 @@ def cursor_proc(read_pipe, linear_mode, left_click=0, right_click=0):
   global y_dim
 
   m = PyMouse()
-#  m.click(x_dim/2, y_dim/2, 1)
-
   x_dim, y_dim = m.screen_size()
 
   previous_acc = (0,0,0)
@@ -56,19 +54,25 @@ def cursor_proc(read_pipe, linear_mode, left_click=0, right_click=0):
 
   while True:
     raw_data = literal_eval(read_pipe.readline())
-    #print("raw data : ",raw_data)
+    print("raw data : ",raw_data) # if its going to be 4 values we need to truncate it
+    button_input=raw_data[3]#4th value is at third position
+    raw_data=raw_data[:3]#first 3 values are actual raw accel data
+    if button_input==1:
+      left_click=1
+    if button_input==2:
+      right_click=1
+
     #print("prev data: ", previous_acc)
-    raw_data = fdata.filter(raw_data, previous_acc, 0.1) #apply filter
+    
+    #raw_data = fdata.filter(raw_data, previous_acc, 0.1) #apply filter
     #print("filtered data : ",raw_data)
 
-# click works about the same, except for int button possible values are 1: left, 2: right, 3: middle
-#m.click(500, 300, 1)
-
-    #check if button pushed next, then apply
+        #check if button pushed next, then apply
     if left_click:#default no left or right click
-    	m.click(m.position(),1) #n33ds x y position to perform click
+      m.click(m.position(),1) #n33ds x y position to perform click
     if right_click: # default no left or right click.
-    	m.click(m.position(),2)
+      m.click(m.position(),2)
+
 
     if linear_mode:
       tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,tf_mode)

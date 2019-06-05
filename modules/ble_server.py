@@ -31,7 +31,10 @@ class HexiDevice(gatt.Device):
 
     def characteristic_value_updated(self, characteristic, value):
         accel_vals = [struct.unpack('<h', value[2*i:2*i+2])[0] for i in range(3)]
-        to_plotter.write(str(accel_vals) + '\n')
+        #button_input= [struct.unpack('<h', value[2*i:2*i+2])[0] for i in range(4)]
+        button_input=struct.unpack('<h', value[6:8])[0]
+        accel_vals.append(button_input)
+        to_plotter.write(str(accel_vals) + '\n') #basically put that into a list and print that shit as a list and we good
         to_plotter.flush()
         to_cursor.write(str(accel_vals) + '\n')
         to_cursor.flush()
