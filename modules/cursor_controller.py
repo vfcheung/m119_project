@@ -45,6 +45,7 @@ def cursor_proc(read_pipe, linear_mode, left_click=0, right_click=0):
   previous_acc = (0,0,0)
   previous_vel = (0,0,0)
   mouse_pos = (0,0)
+  prev_mouse_pos =(0,0)
 
   # Transfer function modes
   #   Orientation: Maps absolute orientation to cursor
@@ -108,8 +109,13 @@ def cursor_proc(read_pipe, linear_mode, left_click=0, right_click=0):
         right_click=0
 
       mouse_pos = (mouse_pos_x,mouse_pos_y)
-      previous_acc = raw_data
+      
       
     else:
       pos_to_move = angular_transfer_function(*raw_data)
-    m.move(*pos_to_move)
+    xlinspace=np.linspace(prev_mouse_pos[0],pos_to_move[0],3)
+    ylinspace=np.linspace(prev_mouse_pos[1],pos_to_move[1],3)
+    for x,y in zip(xlinspace,ylinspace):
+      m.move(int(x),int(y))
+    previous_acc=raw_data
+    prev_mouse_pos=pos_to_move
