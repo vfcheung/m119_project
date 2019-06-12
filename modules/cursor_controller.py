@@ -32,7 +32,7 @@ def linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,mode="
     mouse_pos_x, mouse_pos_y = tf.orientation_tf(raw_data)
     return mouse_pos_x, mouse_pos_y
 
-def cursor_proc(read_pipe, linear_mode):
+def cursor_proc(read_pipe, linear_mode, left_click=0, right_click=0):
 
   print("cursor control process started in {0} mode".format('linear' if linear_mode else 'angular'))
 
@@ -45,6 +45,7 @@ def cursor_proc(read_pipe, linear_mode):
   previous_acc = (0,0,0)
   previous_vel = (0,0,0)
   mouse_pos = (0,0)
+  prev_mouse_pos =(0,0)
 
   # Transfer function modes
   #   Orientation: Maps absolute orientation to cursor
@@ -54,10 +55,24 @@ def cursor_proc(read_pipe, linear_mode):
 
   while True:
     raw_data = literal_eval(read_pipe.readline())
-    #print("raw data : ",raw_data)
+    button_input=raw_data[3]#4th value is at third position
+    raw_data=raw_data[:3]#first 3 values are actual raw accel data
+    if button_input==1:
+      left_click=1
+    if button_input==2:
+      right_click=1
+    #print("button_input", button_input)
+    #print("raw data : ",raw_data) # if its going to be 4 values we need to truncate it
+
     #print("prev data: ", previous_acc)
-    raw_data = fdata.filter(raw_data, previous_acc, 0.1) #apply filter
+    
+    raw_data = fdata.filter(raw_data, previous_acc, 0.5) #apply filter
     #print("filtered data : ",raw_data)
+
+        #check if button pushed next, then apply
+
+
+
     if linear_mode:
       tf_out = linear_transfer_function(raw_data,previous_acc,previous_vel,mouse_pos,tf_mode)
       previous_acc=raw_data
@@ -82,10 +97,25 @@ def cursor_proc(read_pipe, linear_mode):
         mouse_pos_y = 0
 
       pos_to_move = (int(mouse_pos_x),int(mouse_pos_y))
-      print("New mouse pos: ", pos_to_move)
+      #print("New mouse pos: ", pos_to_move)
+      if left_click:#default no left or right click
+        #position=m.position()
+        #print("position", position)
+        m.click(pos_to_move[0],pos_to_move[1],1) #n33ds x y position to perform click
+        #m.click(10,10,1)
+        left_click=0
+      if right_click: # default no left or right click.
+        m.click(pos_to_move[0],pos_to_move[1],2)
+        right_click=0
+
       mouse_pos = (mouse_pos_x,mouse_pos_y)
-      previous_acc = raw_data
+      
       
     else:
       pos_to_move = angular_transfer_function(*raw_data)
-    m.move(*pos_to_move)
+    xlinspace=np.linspace(prev_mouse_pos[0],pos_to_move[0],3)
+    ylinspace=np.linspace(prev_mouse_pos[1],pos_to_move[1],3)
+    for x,y in zip(xlinspace,ylinspace):
+      m.move(int(x),int(y))
+    previous_acc=raw_data
+    prev_mouse_pos=pos_to_move

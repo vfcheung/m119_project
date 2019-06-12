@@ -7,6 +7,6 @@ def plotter_proc(cli, read_pipe, linear_mode):
   #sending it via tcp now.
 
   while True:
-    print("Plotter received " + read_pipe.readline(), end='')
+    #print("Plotter received " + read_pipe.readline(), end='')
     #only do this line when we need to plot stuff.
     cli.send("{}".format(read_pipe.readline()))
